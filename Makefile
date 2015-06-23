@@ -6,7 +6,7 @@ PREFIX=/usr
 CXX=clang++
 CXXFLAGS=-L${LIBRARY_DIR} -I${INCLUDE_DIR} -g -std=c++11 -fPIC -Wall -Wextra -O2 -march=native
 
-all: src/smpl.h
+all: headers
 
 install: libraries
 	mkdir -p ${DESTDIR}/${PREFIX}/lib
@@ -17,10 +17,9 @@ install: libraries
 
 test:
 
-libraries:
+headers: src/smpl.h
 
 clean:
-	rm -rf test/
 	rm -rf *.o
 	rm -rf *.a
 	rm -rf *.so
