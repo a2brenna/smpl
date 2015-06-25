@@ -10,7 +10,7 @@ namespace smpl {
     //to ensure that all constructed addresses are valid.
     class Bad_Address {};
 
-    //A bi-directional pipe for atomic message passing between this Channel
+    //A bi-directional pipe for 'atomic' message passing between this Channel
     //and its Remote Peer.  The remote end is set at construction time and
     //fixed.
     class Channel{
@@ -68,6 +68,9 @@ namespace smpl {
             //This function yields a Channel whose remote end is specified by
             //this Remote_Address. This function should not block.
             //
+            //BUG: If this should not block, then Local_Address::check() is
+            //bullshit
+            //
             //Return Value: A pointer to a valid Channel object, or nullptr
             //indicating error.
             virtual Channel* connect() noexcept = 0;
@@ -95,7 +98,10 @@ namespace smpl {
             virtual Channel* listen() noexcept = 0;
 
             //This function performs a non-blocking check to see if there are
-            //any available Remote Peers attempting a connection.
+            //any available Remote Peers blocked attempting a connection.
+            //
+            //BUG: If Remote Peers dno't block connect()ing, then
+            //Local_Address::check() is always false...
             //
             //Return Value: True if there is an incoming connection and
             //listen() would not block. False if there is no incoming connection
