@@ -49,7 +49,7 @@ namespace smpl {
             virtual std::string recv() noexcept = 0;
 
             //This function blocks and waits until a message is ready to be
-            //recv()ed, (recv() will not block, not unlike select()).
+            //recv()ed, (wait() will not block, not unlike select()).
             //
             //Return Value: True if a message is waiting and recv() will not
             //block. False if there's been an error i.e. the transport layer
@@ -62,14 +62,15 @@ namespace smpl {
 
     };
 
+    //A class for specifying a remote entity to connect to.
     class Remote_Address{
 
         public:
             //This function yields a Channel whose remote end is specified by
-            //this Remote_Address. This function should not block.
-            //
-            //BUG: If this should not block, then Local_Address::check() is
-            //bullshit
+            //this Remote_Address. If the entity specified by Remote_Address
+            //is unreachable (e.g. does not exist) this function will fail
+            //immediately. This function will block until the Local_Address
+            //corresponding to this Remote_Address listen()s.
             //
             //Return Value: A pointer to a valid Channel object, or nullptr
             //indicating error.
@@ -77,6 +78,8 @@ namespace smpl {
 
     };
 
+    //A class for specifying a local "address" to recieve incoming connections
+    //on.
     class Local_Address{
 
         public:
@@ -99,9 +102,6 @@ namespace smpl {
 
             //This function performs a non-blocking check to see if there are
             //any available Remote Peers blocked attempting a connection.
-            //
-            //BUG: If Remote Peers dno't block connect()ing, then
-            //Local_Address::check() is always false...
             //
             //Return Value: True if there is an incoming connection and
             //listen() would not block. False if there is no incoming connection
