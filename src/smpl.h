@@ -5,10 +5,29 @@
 
 namespace smpl {
 
+    enum CHANNEL_STATUS{
+        CHANNEL_BLOCKED,
+        CHANNEL_READY,
+        CHANNEL_ERROR
+    };
+
+    enum ADDRESS_STATUS{
+        ADDRESS_BLOCKED,
+        ADDRESS_READY,
+        ADDRESS_ERROR
+    };
+
     //This exception is thrown when attempting to construct a Remote_Address
     //or Local_Address with semantically invalid parameters.  This allows us
     //to ensure that all constructed addresses are valid.
     class Bad_Address {};
+
+    //This exception is thrown when sending or receiving fails, either completly
+    //or partially.
+    class Transport_Failed {};
+
+    //This exception is thrown when connecting to a Remote_Address fails
+    class Connection_Failed {};
 
     //A bi-directional pipe for 'atomic' message passing between this Channel
     //and its Remote Peer.  The remote end is set at construction time and
@@ -31,12 +50,15 @@ namespace smpl {
             //msg: A non-empty string to be sent to the Remote Peer
             //Return Value: Length of message sent, should match msg.size().
             //A return value not matching msg.size() indicates an error.
-            ssize_t send(const std::string &msg) noexcept {
+            void send(const std::string &msg){
                 if(msg.empty()){
-                    return -1;
+                    throw Transport_Failed();
                 }
-                else
-                    return _send(msg);
+                const size_t r = _send(msg);
+                if( r != msg.size() ){
+                    throw Transport_Failed();
+                }
+                return;
             }
 
             //This function receives the next complete message. Regardless of
@@ -46,7 +68,14 @@ namespace smpl {
             //
             //Return Value: The next complete message from the Remote Peer. An
             //empty string indicates that an error has occured.
-            virtual std::string recv() noexcept = 0;
+            std::string recv(){
+                std::string incoming_msg;
+                const auto r = _recv(incoming_msg);
+                if( r < 0 ){
+                    throw Transport_Failed();
+                }
+                return incoming_msg;
+            }
 
             //This function blocks and waits until a message is ready to be
             //recv()ed, (wait() will not block, not unlike select()).
@@ -54,11 +83,12 @@ namespace smpl {
             //Return Value: True if a message is waiting and recv() will not
             //block. False if there's been an error i.e. the transport layer
             //has failed.
-            virtual bool wait() noexcept = 0;
+            virtual CHANNEL_STATUS wait() noexcept = 0;
 
         private:
 
             virtual ssize_t _send(const std::string &msg) noexcept = 0;
+            virtual ssize_t _recv(std::string &msg) noexcept = 0;
 
     };
 
@@ -72,9 +102,19 @@ namespace smpl {
             //immediately. This function will block until the Local_Address
             //corresponding to this Remote_Address listen()s.
             //
-            //Return Value: A pointer to a valid Channel object, or nullptr
-            //indicating error.
-            virtual Channel* connect() noexcept = 0;
+            //Return Value: A pointer to a valid Channel object
+            Channel* connect(){
+                Channel* connection = _connect();
+                if(connection == nullptr){
+                    throw Connection_Failed();
+                }
+                else{
+                    return connection;
+                }
+            }
+
+        private:
+            virtual Channel* _connect() noexcept = 0;
 
     };
 
@@ -96,9 +136,16 @@ namespace smpl {
             //and returns a pointer to it.
             //
             //Return Value: A pointer to a valid Channel to a Remote Peer
-            //attempting to connect to this Local_Address. nullptr indicates
-            //an error.
-            virtual Channel* listen() noexcept = 0;
+            //attempting to connect to this Local_Address.
+            Channel* listen(){
+                Channel* connection = _listen();
+                if(connection == nullptr){
+                    throw Connection_Failed();
+                }
+                else{
+                    return connection;
+                }
+            }
 
             //This function performs a non-blocking check to see if there are
             //any available Remote Peers blocked attempting a connection.
@@ -106,7 +153,10 @@ namespace smpl {
             //Return Value: True if there is an incoming connection and
             //listen() would not block. False if there is no incoming connection
             //and listen() would block.
-            virtual bool check() noexcept = 0;
+            virtual ADDRESS_STATUS check() noexcept = 0;
+
+        private:
+            virtual Channel* _listen() noexcept = 0;
 
     };
 
