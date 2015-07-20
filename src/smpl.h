@@ -35,8 +35,9 @@ namespace smpl {
                 if(msg.empty()){
                     return -1;
                 }
-                else
+                else{
                     return _send(msg);
+                }
             }
 
             //This function receives the next complete message. Regardless of
