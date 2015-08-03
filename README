@@ -9,10 +9,4 @@ extensible, adding new transport layers and their associated addressing systems
 should be fairly painless and more importantly should not require retooling
 by any clients.
 
-The reference implementation is in C++, as well as the initial performance
-benchmarks.
-
-Also plan a Rust implementation.
-
-By using capabilities and serializing addresses it might be possible to fairly
-universally pass Channels over Channels... that would be pretty drugs.
+The reference implementation is in C++.
