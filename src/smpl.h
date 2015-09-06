@@ -43,6 +43,10 @@ namespace smpl {
             //break synchronous access to the underlying transport
             Channel(const Channel&) = delete;
 
+            //Copy assignment constructor deleted since copying a Channel would
+            //likely break synchronous access to the underlying transport
+            Channel& operator= (const Channel&) = delete;
+
             //This function sends a complete message to be recv()ed by the
             //Remote Peer. Regardless of the mechanics of the underlying
             //transport this function should be non-blocking.
