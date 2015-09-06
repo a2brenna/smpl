@@ -51,9 +51,6 @@ namespace smpl {
             //Return Value: Length of message sent, should match msg.size().
             //A return value not matching msg.size() indicates an error.
             void send(const std::string &msg){
-                if(msg.empty()){
-                    throw Transport_Failed();
-                }
                 const size_t r = _send(msg);
                 if( r != msg.size() ){
                     throw Transport_Failed();
