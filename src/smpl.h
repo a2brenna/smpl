@@ -52,11 +52,22 @@ namespace smpl {
             //transport this function should be non-blocking.
             //
             //msg: A non-empty string to be sent to the Remote Peer
-            //Return Value: Length of message sent, should match msg.size().
-            //A return value not matching msg.size() indicates an error.
             void send(const std::string &msg){
                 const size_t r = _send(msg);
                 if( r != msg.size() ){
+                    throw Transport_Failed();
+                }
+                return;
+            }
+
+            //This function sends a complete message to be recv()ed by the
+            //Remote Peer. Regardless of the mechanics of the underlying
+            //transport this function should be non-blocking.
+            //
+            //msg: A non-empty string to be sent to the Remote Peer
+            void send(const char *msg, const size_t &msg_size){
+                const size_t r = _send(msg, msg_size);
+                if( r != msg_size ){
                     throw Transport_Failed();
                 }
                 return;
@@ -78,6 +89,25 @@ namespace smpl {
                 return incoming_msg;
             }
 
+            //This function receives the next complete message. Regardless of
+            //the mechanics of the underlying transport layer recv() should
+            //return a single complete message. If no complete message is
+            //available, this function should block. This function attempts to
+            //write the next message directly into the buffer as indicated by
+            //the ptr to buffer and buffer_len.  This can be used to avoid some
+            //copying.
+            //
+            //Return Value: The size of the messag recieved in bytes.
+            size_t recv(char *buffer, const size_t &buffer_len){
+                const auto bytes_received = _recv(buffer, buffer_len);
+                if( bytes_received < 0 ){
+                    throw Transport_Failed();
+                }
+                else{
+                    return bytes_received;
+                }
+            }
+
             //This function blocks and waits until a message is ready to be
             //recv()ed, (wait() will not block, not unlike select()).
             //
@@ -89,7 +119,9 @@ namespace smpl {
         private:
 
             virtual ssize_t _send(const std::string &msg) noexcept = 0;
+            virtual ssize_t _send(const char *msg, const size_t &msg_size) noexcept = 0;
             virtual ssize_t _recv(std::string &msg) noexcept = 0;
+            virtual ssize_t _recv(char *buffer, const size_t &buffer_len) noexcept = 0;
 
     };
 
