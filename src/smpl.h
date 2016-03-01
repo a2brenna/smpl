@@ -193,6 +193,32 @@ namespace smpl {
 
     };
 
+    class Remote_Postbox{
+
+        public:
+
+            Remote_Postbox() {};
+            virtual ~Remote_Postbox() noexcept {};
+
+            virtual void send(const std::string &message) noexcept = 0;
+
+
+    };
+
+    class Local_Postbox{
+
+        public:
+
+            Local_Postbox() {};
+            virtual ~Local_Postbox() noexcept {};
+
+            //Copy constructor deleted because generally an instance of
+            //Local_Postbox should "own" that local address.
+            Local_Postbox(const Local_Postbox&) = delete;
+
+            virtual std::string recv() noexcept = 0;
+    };
+
 }
 
 #endif
